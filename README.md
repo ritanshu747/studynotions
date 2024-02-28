@@ -24,7 +24,7 @@ Install dependencies:
 
     Navigate to the backend directory:
 
-    bash
+    cd backend
 
 cd backend
 
@@ -38,8 +38,6 @@ Set up environment variables:
     Define environment variables such as database connection URI, Cloudinary credentials, Razorpay API keys, and JWT secret key in the .env file.
 
 Start the backend server:
-
-sql
 
     npm start
 
