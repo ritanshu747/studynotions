@@ -28,10 +28,7 @@ The studtynotion project is a demonstration of how one can create a simplified v
 ## Technologies Used
 
 - **Frontend:**
-  - HTML5
-  - CSS3
-  - JavaScript
-  - React.js
+  - React.js (Work in Progress)
 
 - **Backend:**
   - Node.js
