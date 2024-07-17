@@ -1,102 +1,98 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
-const User = require('../models/User');
+// Importing required modules
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+const User = require("../models/User");
+// Configuring dotenv to load environment variables from .env file
+dotenv.config();
 
-exports.auth = async(req,res,next)=>{
-    try{
-        const token = req.cookies.token || req.body.token|| 
-        token.header("Authorisation").replace("Bearer"," ");
+// This function is used as middleware to authenticate user requests
+exports.auth = async (req, res, next) => {
+	try {
+		// Extracting JWT from request cookies, body or header
+		const token =
+			req.cookies.token ||
+			req.body.token ||
+			req.header("Authorization").replace("Bearer ", "");
 
-        //if token is missing then we are returning reponse
-        if(!token){
-            return res.status(401).json({
-                success:false,
-                message:" Token is missing."
-            });
-        }
-        //mil token to verify token by using secret key
-        try{
-            const decode=  jwt.verify(token,process.env.JWT_SECRET);
-            console.log("decode token is ",decode);
-            req.user = decode;
-        }
-        catch(error){
-            return res.status(401).json({
-                success:false,
-                message:"Something is wrong with your token"
-            })
-            next();
-        }
-    }
-    catch(error){
-         return res.status(401).json({
-            success:false,
-            message:"Something went wrong while validating the token"
-         })
-    }
+		// If JWT is missing, return 401 Unauthorized response
+		if (!token) {
+			return res.status(401).json({ success: false, message: `Token Missing` });
+		}
 
-}
+		try {
+			// Verifying the JWT using the secret key stored in environment variables
+			const decode = await jwt.verify(token, process.env.JWT_SECRET);
+			console.log(decode);
+			// Storing the decoded JWT payload in the request object for further use
+			req.user = decode;
+		} catch (error) {
+			// If JWT verification fails, return 401 Unauthorized response
+			return res
+				.status(401)
+				.json({ success: false, message: "token is invalid" });
+		}
 
-//isStudent
+		// If JWT is valid, move on to the next middleware or request handler
+		next();
+	} catch (error) {
+		// If there is an error during the authentication process, return 401 Unauthorized response
+		return res.status(401).json({
+			success: false,
+			message: `Something Went Wrong While Validating the Token`,
+		});
+	}
+};
+exports.isStudent = async (req, res, next) => {
+	try {
+		const userDetails = await User.findOne({ email: req.user.email });
 
-exports.isStudent =async(req,res,nex)=>{
-    try{ 
-      if(req.User.accountType !== "Student"){
-        return res.status(401).json({
-            success:false,
-            message:"This is private route not only for Students only!",
-        })
-      }
-      next();
+		if (userDetails.accountType !== "Student") {
+			return res.status(401).json({
+				success: false,
+				message: "This is a Protected Route for Students",
+			});
+		}
+		next();
+	} catch (error) {
+		return res
+			.status(500)
+			.json({ success: false, message: `User Role Can't be Verified` });
+	}
+};
+exports.isAdmin = async (req, res, next) => {
+	try {
+		const userDetails = await User.findOne({ email: req.user.email });
 
-    }
-    catch(error){
-        return status(401).json({
-            success:false,
-            message:"User role cannot be verified, please try again later!"
-         })
-    }
-}
+		if (userDetails.accountType !== "Admin") {
+			return res.status(401).json({
+				success: false,
+				message: "This is a Protected Route for Admin",
+			});
+		}
+		next();
+	} catch (error) {
+		return res
+			.status(500)
+			.json({ success: false, message: `User Role Can't be Verified` });
+	}
+};
+exports.isInstructor = async (req, res, next) => {
+	try {
+		const userDetails = await User.findOne({ email: req.user.email });
+		console.log(userDetails);
 
-//isInstrutor
+		console.log(userDetails.accountType);
 
-exports.isInstrutor =async(req,res,nex)=>{
-    try{ 
-      if(req.User.accountType !== "Instrutor"){
-        return res.status(401).json({
-            success:false,
-            message:"This is private route not only for Instrutors only!",
-        })
-      }
-      next();
-
-    }
-    catch(error){
-        return status(401).json({
-            success:false,
-            message:"User role cannot be verified, please try again later!"
-         })
-    }
-}
-
-//isAdmin
-
-exports.isAdmin =async(req,res,nex)=>{
-    try{ 
-      if(req.User.accountType !== "Admin"){
-        return res.status(401).json({
-            success:false,
-            message:"This is private route not only for Admin only!",
-        })
-      }
-      next();
-
-    }
-    catch(error){
-        return res.status(401).json({
-            success:false,
-            message:"User role cannot be verified, please try again later!"
-         })
-    }
-}
-
+		if (userDetails.accountType !== "Instructor") {
+			return res.status(401).json({
+				success: false,
+				message: "This is a Protected Route for Instructor",
+			});
+		}
+		next();
+	} catch (error) {
+		return res
+			.status(500)
+			.json({ success: false, message: `User Role Can't be Verified` });
+	}
+};
